@@ -23,6 +23,8 @@ knee$Sex = as.factor(knee$Sex)
 knee$Sex = ifelse(knee$Sex == 1, "Female", "Male")
 knee$Th = as.factor(knee$Th) #1 = Placebo, 2 = Treatment
 
+cor(knee[,5:8])
+
 ##DICHOMOTIZE PAIN, 1 = High pain, 0 = Low pain
 for (i in 1:127)
 {
@@ -87,7 +89,7 @@ ggplot(knee.long) +
   theme(text = element_text(family = "A")) +
   ggtitle("High Sports Injury Pain Reports by Treatment")
 
-  
+
 
 ##GEE MODELS
 ##INDEPENDENT
@@ -140,6 +142,15 @@ coef(summary(mod.Th.ex))[,c(1,2,4)]
 coef(summary(mod.Th.ar))[,c(1,2,4)]
 coef(summary(mod.Th.un))[,c(1,2,4)]
 
+plot(mod.ind)
+plot(mod.ex)
+plot(mod.ar)
+plot(mod.un)
+
+QIC(mod.ind)
+QIC(mod.ex)
+QIC(mod.ar)
+QIC(mod.un)
 
 ###########################
 #ordgee function
@@ -157,7 +168,6 @@ summary(mod.or.un.Th)
 
 mod.or.un$alpha
 
-
 ############################
 #GEE
 #install.packages("gee")
@@ -174,10 +184,4 @@ summary(mod.un2)
 
 
 
-plot(mod.un)
-plot(mod.ar)
-plot(mod.ind)
-plot(mod.ex)
 
-
-QIC(mod.ar)
