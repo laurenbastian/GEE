@@ -99,7 +99,6 @@ mod.ind = geeglm(pain ~ Th + Age + Sex, data = knee.long,
 summary(mod.ind)
 
 
-
 ##EXCHANGEABLE
 mod.ex = geeglm(pain ~ Th + Age + Sex, data = knee.long, 
                     family = binomial,
@@ -126,8 +125,20 @@ coef(summary(mod.ex))[,c(1,2,4)]
 coef(summary(mod.ar))[,c(1,2,4)]
 coef(summary(mod.un))[,c(1,2,4)]
 
+##Pearson residuals vs fitted
+par(mfrow = c(2,2))
+plot(mod.ind, main = "Independence")
+plot(mod.ex, "Exchangeable")
+plot(mod.ar, "AR(1)")
+plot(mod.un, "Unstructured")
+
+##QIC to choose structure
+QIC(mod.ex)
+QIC(mod.ar)
+QIC(mod.un)
+
 #########################
-cor(knee[5:8])
+
 
 mod.Th.ex = geeglm(pain ~ Th, data = knee.long, family = binomial, id = N, corstr = "exchangeable")
 summary(mod.Th.ex)
@@ -142,42 +153,50 @@ coef(summary(mod.Th.ex))[,c(1,2,4)]
 coef(summary(mod.Th.ar))[,c(1,2,4)]
 coef(summary(mod.Th.un))[,c(1,2,4)]
 
-plot(mod.ind)
-plot(mod.ex)
-plot(mod.ar)
-plot(mod.un)
 
-QIC(mod.ind)
-QIC(mod.ex)
-QIC(mod.ar)
-QIC(mod.un)
 
 ###########################
 #ordgee function
+#independence
+mod.or.ind = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
+                   data = knee.long, 
+                   mean.link = "logit",
+                   id = N, corstr = "independence")
+summary(mod.or.ind)
+
+#exchangeable
+mod.or.ex = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
+                   data = knee.long, 
+                   mean.link = "logit",
+                   id = N, corstr = "exchangeable")
+summary(mod.or.ex)
+
+#unstructured
 mod.or.un = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
                   data = knee.long, 
                   mean.link = "logit",
                   id = N, corstr = "unstructured")
 summary(mod.or.un)
 
-mod.or.un.Th = ordgee(ordered(pain, levels = c(0,1)) ~ Th,
-                   data = knee.long, 
-                   mean.link = "logit",
-                   id = N, corstr = "unstructured")
-summary(mod.or.un.Th)
 
+mod.or.ind$alpha
+mod.or.ex$alpha
 mod.or.un$alpha
+
 
 ############################
 #GEE
 #install.packages("gee")
 library(gee)
 
-mod.ar2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "AR-M")
-summary(mod.ar2)
-
 mod.ind2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "independence")
 summary(mod.ind2)
+
+mod.ex2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "exchangeable")
+summary(mod.ex2)
+
+mod.ar2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "AR-M")
+summary(mod.ar2)
 
 mod.un2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "unstructured")
 summary(mod.un2)
