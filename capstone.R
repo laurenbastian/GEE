@@ -14,16 +14,17 @@ data(knee)
 
 ##get descriptives
 xtabs(~Th + Sex, data = knee)
-mean(knee[knee$Th == 1, ]$Age)
-mean(knee[knee$Th == 2, ]$Age)
-mean(as.numeric(knee[knee$Th == 1, ]$Sex))
-mean(as.numeric(knee[knee$Th == 2, ]$Sex))
+mean(knee$Age) #29.5 years on average
+mean(knee$Sex) #70.1% female
+mean(knee[knee$Th == 1, ]$Age) #placebo has mean age 30.6
+mean(as.numeric(knee[knee$Th == 2, ]$Age)) #therapy has mean age 28.5
+mean(as.numeric(knee[knee$Th == 1, ]$Sex)) #placebo 73.0% female
+mean(as.numeric(knee[knee$Th == 2, ]$Sex)) #therapy 67.2% female
 
 knee$Sex = as.factor(knee$Sex)
 knee$Sex = ifelse(knee$Sex == 1, "Female", "Male")
 knee$Th = as.factor(knee$Th) #1 = Placebo, 2 = Treatment
 
-cor(knee[,5:8])
 
 ##DICHOMOTIZE PAIN, 1 = High pain, 0 = Low pain
 for (i in 1:127)
@@ -58,8 +59,22 @@ knee.long$time = as.factor(knee.long$time)
 ########################
 ##EXPLORATORY ANALYSIS
 
+high.R1 = c(nrow(knee[knee$Th == 1  & knee$R1 == 1,]), nrow(knee[knee$Th == 2  & knee$R1 == 1,]))
+high.R2 = c(nrow(knee[knee$Th == 1  & knee$R2 == 1,]), nrow(knee[knee$Th == 2  & knee$R2 == 1,]))
+high.R3 = c(nrow(knee[knee$Th == 1  & knee$R3 == 1,]), nrow(knee[knee$Th == 2  & knee$R3 == 1,]))
+high.R4 = c(nrow(knee[knee$Th == 1  & knee$R4 == 1,]), nrow(knee[knee$Th == 2  & knee$R4 == 1,]))
+Th = as.character(c("1", "2"))
+high.df = as.data.frame(cbind(Th, high.R1, high.R2, high.R3, high.R4))
+                       
+
+
+cor(knee[,5:8])
+
 #Font
 windowsFonts(A = windowsFont("Times New Roman"))
+
+
+
 
 ggplot(knee.long) +
   geom_col(aes(x = time, y = pain, fill = Sex))+
@@ -93,20 +108,21 @@ ggplot(knee.long) +
 
 ##GEE MODELS
 ##INDEPENDENT
-mod.ind = geeglm(pain ~ Th + Age + Sex, data = knee.long, 
+knee.long$time = as.numeric(knee.long$time)
+mod.ind = geeglm(pain ~ Th + Age + Sex + time, data = knee.long, 
                     family = binomial,
                     id = N, corstr = "independence")
 summary(mod.ind)
 
 
 ##EXCHANGEABLE
-mod.ex = geeglm(pain ~ Th + Age + Sex, data = knee.long, 
+mod.ex = geeglm(pain ~ Th + Age + Sex + time, data = knee.long, 
                     family = binomial,
                     id = N, corstr = "exchangeable")
 summary(mod.ex)
 
 ##AR1
-mod.ar = geeglm(pain ~ Th + Age + Sex, data = knee.long, 
+mod.ar = geeglm(pain ~ Th + Age + Sex + time, data = knee.long, 
                     family = binomial,
                     id = N, corstr = "ar1")
 summary(mod.ar)
@@ -114,7 +130,7 @@ summary(mod.ar)
 
 
 ##UNSTRUCTURED
-mod.un = geeglm(pain ~ Th + Age + Sex, data = knee.long, 
+mod.un = geeglm(pain ~ Th + Age + Sex+ time, data = knee.long, 
                     family = binomial,
                     id = N, corstr = "unstructured")
 summary(mod.un)
@@ -133,27 +149,24 @@ plot(mod.ar, "AR(1)")
 plot(mod.un, "Unstructured")
 
 ##QIC to choose structure
+QIC(mod.ind)
 QIC(mod.ex)
 QIC(mod.ar)
 QIC(mod.un)
 
 #########################
+##MODEL SELECTION UNDER AR1
+summary(mod.ar)
 
+mod.ar.Thtime = geeglm(pain ~ Th + time, data = knee.long, family = binomial, id = N, corstr = "ar")
+summary(mod.ar.Thtime)
 
-mod.Th.ex = geeglm(pain ~ Th, data = knee.long, family = binomial, id = N, corstr = "exchangeable")
-summary(mod.Th.ex)
+anova(mod.ar, mod.ar.Thtime)
 
-mod.Th.ar = geeglm(pain ~ Th, data = knee.long, family = binomial, id = N, corstr = "ar")
-summary(mod.Th.ar)
+par(mfrow = c(1,1))
+plot(mod.ar.Thtime)
 
-mod.Th.un = geeglm(pain ~ Th, data = knee.long, family = binomial, id = N, corstr = "unstructured")
-summary(mod.Th.un)
-
-coef(summary(mod.Th.ex))[,c(1,2,4)]
-coef(summary(mod.Th.ar))[,c(1,2,4)]
-coef(summary(mod.Th.un))[,c(1,2,4)]
-
-
+exp(mod.ar.Thtime$coefficients)
 
 ###########################
 #ordgee function
