@@ -165,6 +165,17 @@ anova(mod.ar, mod.ar.Thtime)
 
 par(mfrow = c(1,1))
 plot(mod.ar.Thtime)
+qqplot(qchisq(ppoints(500), df = 4), resid(mod.ar.Thtime, type = 'pearson'), 
+       main = expression("Q-Q plot for" ~~ {chi^2}[nu == 4]),
+       xlab = "Quantiles",
+       ylab = "Pearson Residuals")
+qqline(resid(mod.ar.Thtime, type = 'pearson'), distribution = function(p) qchisq(p, df = 4), col = "red")
+
+qqplot(qchisq(ppoints(500), df = 4), resid(mod.ar, type = 'pearson'), 
+       main = expression("Q-Q plot for" ~~ {chi^2}[nu == 4]),
+       xlab = "Quantiles",
+       ylab = "Pearson Residuals")
+qqline(resid(mod.ar, type = 'pearson'), distribution = function(p) qchisq(p, df = 4), col = "red")
 
 exp(mod.ar.Thtime$coefficients)
 
