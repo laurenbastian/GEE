@@ -9,7 +9,8 @@ library(geepack)
 ##LOAD DATA
 #catdata package info found here:
 #https://cran.r-project.org/web/packages/catdata/catdata.pdf
-#Gerhard Tutz (2012), Regression for Categorical Data, Cambridge University Press
+#Gerhard Tutz (2012), Regression for Categorical Data, 
+#Cambridge University Press
 data(knee)
 
 ##get descriptives
@@ -59,10 +60,14 @@ knee.long$time = as.factor(knee.long$time)
 ########################
 ##EXPLORATORY ANALYSIS
 
-high.R1 = c(nrow(knee[knee$Th == 1  & knee$R1 == 1,]), nrow(knee[knee$Th == 2  & knee$R1 == 1,]))
-high.R2 = c(nrow(knee[knee$Th == 1  & knee$R2 == 1,]), nrow(knee[knee$Th == 2  & knee$R2 == 1,]))
-high.R3 = c(nrow(knee[knee$Th == 1  & knee$R3 == 1,]), nrow(knee[knee$Th == 2  & knee$R3 == 1,]))
-high.R4 = c(nrow(knee[knee$Th == 1  & knee$R4 == 1,]), nrow(knee[knee$Th == 2  & knee$R4 == 1,]))
+high.R1 = c(nrow(knee[knee$Th == 1  & knee$R1 == 1,]), 
+            nrow(knee[knee$Th == 2  & knee$R1 == 1,]))
+high.R2 = c(nrow(knee[knee$Th == 1  & knee$R2 == 1,]), 
+            nrow(knee[knee$Th == 2  & knee$R2 == 1,]))
+high.R3 = c(nrow(knee[knee$Th == 1  & knee$R3 == 1,]), 
+            nrow(knee[knee$Th == 2  & knee$R3 == 1,]))
+high.R4 = c(nrow(knee[knee$Th == 1  & knee$R4 == 1,]), 
+            nrow(knee[knee$Th == 2  & knee$R4 == 1,]))
 Th = as.character(c("1", "2"))
 high.df = as.data.frame(cbind(Th, high.R1, high.R2, high.R3, high.R4))
                        
@@ -89,7 +94,7 @@ ggplot(knee.long) +
 
 #Pain counts by therapy
 ftable(xtabs(~time + pain + Th ,data = knee.long))
-therapy.df = as.data.frame(xtabs(~time + pain + Th ,data = knee.long))
+therapy.df = as.data.frame(xtabs(~time + pain + Th, data = knee.long))
 therapy.df = therapy.df[order(therapy.df$time),]
 therapy.df
 
@@ -158,24 +163,28 @@ QIC(mod.un)
 ##MODEL SELECTION UNDER AR1
 summary(mod.ar)
 
-mod.ar.Thtime = geeglm(pain ~ Th + time, data = knee.long, family = binomial, id = N, corstr = "ar")
+mod.ar.Thtime = geeglm(pain ~ Th + time, data = knee.long, 
+                       family = binomial, id = N, corstr = "ar")
 summary(mod.ar.Thtime)
 
 anova(mod.ar, mod.ar.Thtime)
 
 par(mfrow = c(1,1))
 plot(mod.ar.Thtime)
-qqplot(qchisq(ppoints(500), df = 4), resid(mod.ar.Thtime, type = 'pearson'), 
+qqplot(qchisq(ppoints(500), df = 4), resid(mod.ar.Thtime, 
+                                           type = 'pearson'), 
        main = expression("Q-Q plot for" ~~ {chi^2}[nu == 4]),
        xlab = "Quantiles",
        ylab = "Pearson Residuals")
-qqline(resid(mod.ar.Thtime, type = 'pearson'), distribution = function(p) qchisq(p, df = 4), col = "red")
+qqline(resid(mod.ar.Thtime, type = 'pearson'), 
+       distribution = function(p) qchisq(p, df = 4), col = "red")
 
 qqplot(qchisq(ppoints(500), df = 4), resid(mod.ar, type = 'pearson'), 
        main = expression("Q-Q plot for" ~~ {chi^2}[nu == 4]),
        xlab = "Quantiles",
        ylab = "Pearson Residuals")
-qqline(resid(mod.ar, type = 'pearson'), distribution = function(p) qchisq(p, df = 4), col = "red")
+qqline(resid(mod.ar, type = 'pearson'), 
+       distribution = function(p) qchisq(p, df = 4), col = "red")
 
 exp(mod.ar.Thtime$coefficients)
 
@@ -213,16 +222,20 @@ mod.or.un$alpha
 #install.packages("gee")
 library(gee)
 
-mod.ind2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "independence")
+mod.ind2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
+               data = knee.long, id = N, corstr = "independence")
 summary(mod.ind2)
 
-mod.ex2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "exchangeable")
+mod.ex2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
+              data = knee.long, id = N, corstr = "exchangeable")
 summary(mod.ex2)
 
-mod.ar2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "AR-M")
+mod.ar2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
+              data = knee.long, id = N, corstr = "AR-M")
 summary(mod.ar2)
 
-mod.un2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), data = knee.long, id = N, corstr = "unstructured")
+mod.un2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
+              data = knee.long, id = N, corstr = "unstructured")
 summary(mod.un2)
 
 
