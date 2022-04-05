@@ -2,9 +2,11 @@
 #install.packages("ggplot2")
 #install.packages("cardata")
 #install.packages("geepack")
+#install.packages("reshape2")
 library(ggplot2)
 library(catdata)
 library(geepack)
+library(reshape2)
 
 ##LOAD DATA
 #catdata package info found here:
@@ -110,6 +112,26 @@ ggplot(knee.long) +
   ggtitle("High Sports Injury Pain Reports by Treatment")
 
 
+##spaghetti plot of pain over time
+#https://stats.stackexchange.com/questions/45444/how-do-you-visualize-binary-outcomes-versus-a-continuous-predictor
+
+
+##heatmap of correlation
+cor.mat = round(cor(knee[,5:8]), 3)
+colnames(cor.mat) = c("0 days", "3 days", "7 days", "10 days")
+rownames(cor.mat) = c("0 days", "3 days", "7 days", "10 days")
+melt.cor.mat = melt(cor.mat)
+
+ggplot(data = melt.cor.mat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+  theme_minimal() + 
+  theme(text = element_text(size = 20),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) +
+  scale_fill_gradient2(low = "green", high = "red", mid = "yellow", 
+                       midpoint = 0, limit = c(0,1), space = "Lab", 
+                       name="Pearson\nCorrelation") +
+  geom_text(aes(Var2, Var1, label = value), color = "white", size = 5)
 
 ##GEE MODELS
 ##INDEPENDENT
@@ -188,55 +210,6 @@ qqline(resid(mod.ar, type = 'pearson'),
 
 exp(mod.ar.Thtime$coefficients)
 
-###########################
-#ordgee function
-#independence
-mod.or.ind = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
-                   data = knee.long, 
-                   mean.link = "logit",
-                   id = N, corstr = "independence")
-summary(mod.or.ind)
-
-#exchangeable
-mod.or.ex = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
-                   data = knee.long, 
-                   mean.link = "logit",
-                   id = N, corstr = "exchangeable")
-summary(mod.or.ex)
-
-#unstructured
-mod.or.un = ordgee(ordered(pain, levels = c(0,1)) ~ Th + Age + Sex,
-                  data = knee.long, 
-                  mean.link = "logit",
-                  id = N, corstr = "unstructured")
-summary(mod.or.un)
-
-
-mod.or.ind$alpha
-mod.or.ex$alpha
-mod.or.un$alpha
-
-
-############################
-#GEE
-#install.packages("gee")
-library(gee)
-
-mod.ind2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
-               data = knee.long, id = N, corstr = "independence")
-summary(mod.ind2)
-
-mod.ex2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
-              data = knee.long, id = N, corstr = "exchangeable")
-summary(mod.ex2)
-
-mod.ar2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
-              data = knee.long, id = N, corstr = "AR-M")
-summary(mod.ar2)
-
-mod.un2 = gee(pain ~ Th + Age + Sex, family = binomial(logit), 
-              data = knee.long, id = N, corstr = "unstructured")
-summary(mod.un2)
 
 
 
