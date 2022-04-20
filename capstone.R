@@ -112,8 +112,30 @@ ggplot(knee.long) +
   ggtitle("High Sports Injury Pain Reports by Treatment")
 
 
-##spaghetti plot of pain over time
-#https://stats.stackexchange.com/questions/45444/how-do-you-visualize-binary-outcomes-versus-a-continuous-predictor
+##Pain counts by therapy
+ftable(xtabs(~time + pain + Th ,data = knee.long))
+therapy.df = as.data.frame(xtabs(~time + pain + Th ,data = knee.long))
+therapy.df = therapy.df[order(therapy.df$time),]
+therapy.df
+
+df = as.data.frame(therapy.df[therapy.df$time == 0 & therapy.df$pain == 1, ])
+df = rbind(df, therapy.df[therapy.df$time == 3 & therapy.df$pain == 1, ])
+df = rbind(df, therapy.df[therapy.df$time == 7 & therapy.df$pain == 1, ])
+df = rbind(df, therapy.df[therapy.df$time == 10 & therapy.df$pain == 1, ])
+
+ggplot(df, aes(x = time, y = Freq, fill = Th)) +
+  geom_col(position = 'dodge')+
+  theme_light() +
+  theme(text = element_text(size = 20)) +
+  labs(fill = "Treatment") +
+  scale_fill_manual(labels = c("Placebo", "Therapy"),
+                    values = c("lightskyblue3", "#1d516e")) +
+  xlab("Time in Days") + 
+  ylab("# of High Pain Reports") +
+  ggtitle("High Sports Injury Pain Reports by Treatment")
+
+
+
 
 
 ##heatmap of correlation
@@ -128,7 +150,7 @@ ggplot(data = melt.cor.mat, aes(x=Var1, y=Var2, fill=value)) +
   theme(text = element_text(size = 20),
         axis.title.x = element_blank(),
         axis.title.y = element_blank()) +
-  scale_fill_gradient2(low = "green", high = "red", mid = "yellow", 
+  scale_fill_gradient2(low = "yellow", high = "#1d516e", mid = "white", 
                        midpoint = 0, limit = c(0,1), space = "Lab", 
                        name="Pearson\nCorrelation") +
   geom_text(aes(Var2, Var1, label = value), color = "white", size = 5)
